@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
-from xml.etree.ElementTree import tostring
 
 
 root = Tk()
