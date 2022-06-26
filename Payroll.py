@@ -3,12 +3,13 @@ import threading
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
-import tkinter
 from sqlconnect import *
 import time
 
 class MainWindow:
     def __init__(self, root):
+        
+        #======================================================Time Punch Screen========================================================
         
         root.title("Time Clock")
         
@@ -22,8 +23,8 @@ class MainWindow:
         
         self.found = ""
         self.id_number = StringVar()
-        id_entry = ttk.Entry(self.mainframe, textvariable=self.id_number)
-        id_entry.grid(column=2, row=2, sticky=E)
+        self.id_entry = ttk.Entry(self.mainframe, textvariable=self.id_number)
+        self.id_entry.grid(column=2, row=2, sticky=E)
 
         ttk.Button(self.mainframe,text="Manager Login", command= self.login_btn).grid(column=3, row=3, sticky=(W, E))
         self.punch_label = ttk.Label(self.mainframe, text=self.found)
@@ -35,18 +36,17 @@ class MainWindow:
         for child in self.mainframe.winfo_children(): 
             child.grid_configure(padx=5, pady=5)
             
-        id_entry.focus()
+        self.id_entry.focus()
         root.bind("<Return>", self.enter_time)
             
-    def update_labels(self):
+    def update_labels(self):            #updates time on punch screen
         current_time = (datetime.now().strftime("%H:%M:%S"))
         ttk.Label(self.mainframe, text=current_time).grid(column=2, row=1, sticky=W)
         for child in self.mainframe.winfo_children(): 
             child.grid_configure(padx=5, pady=5)
-        ###self.punch_label.state(["disabled"])
         root.after(1000, self.update_labels)        
 
-    def enter_time(self, *args):
+    def enter_time(self, *args):        #Attempts to enter punch to DB
         if self.id_number.get() != "":
             value = time_entry(self.id_number.get(), connect_sql)
             if value == True:
@@ -64,7 +64,7 @@ class MainWindow:
         else:
             print("Empty id passed")
             
-    def punch_success(self):
+    def punch_success(self):        #brings up self closing success screen
         top= Toplevel(root)
         top.geometry("250x250")
         top.title("Punch Succeded")
@@ -73,7 +73,7 @@ class MainWindow:
         time.sleep(3)
         top.destroy()
         
-    def punch_failed(self):
+    def punch_failed(self):          #brings up self closing failure screen
         top= Toplevel(root)
         top.geometry("250x250")
         top.title("Punch Failed")
@@ -87,46 +87,108 @@ class MainWindow:
         l = threading.Thread(target=self.login)
         l.start()
 
+    #===================================Login Screen==============================================
     
     def login(self):
 
         self.branch= Toplevel(root)
         self.branch.geometry("550x550")
-        self.branch.title("Manager Login")
+        self.branch.title("Manager Control")
        
-        managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
-        managerframe.grid(column=0, row=0, sticky=(N, W, E, S))
-        managerframe.place(x=10,y=10)
+        self.managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
+        self.managerframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.managerframe.place(x=10,y=10)
         
-        ttk.Label(managerframe, text="Manager ID: ").grid(column=3, row=3, sticky=(E))
+        ttk.Label(self.managerframe, text="Manager ID: ").grid(column=3, row=3, sticky=(E))
         
         self.login_id = StringVar()
-        manager_id = ttk.Entry(managerframe,textvariable=self.login_id)
+        manager_id = ttk.Entry(self.managerframe,textvariable=self.login_id)
         manager_id.grid(column=4, row=3, sticky=(W, E))
         
-        ttk.Label(managerframe, text= "Manager Password: ").grid(column=3, row=5, sticky=(E))
+        ttk.Label(self.managerframe, text= "Manager Password: ").grid(column=3, row=5, sticky=(E))
         
         self.login_password = StringVar()
-        manager_password = ttk.Entry(managerframe, textvariable=self.login_password)
+        manager_password = ttk.Entry(self.managerframe, textvariable=self.login_password, show="*")
         manager_password.grid(column=4, row=5, sticky=(W, E))
         
-        ttk.Button(managerframe, text= "Login", command= self.manager_login).grid(column=2, row=7, sticky=(W, E))
-        ttk.Button(managerframe, text= "Exit", command= self.manager_exit).grid(column=6, row=7, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Login", command= self.manager_login).grid(column=2, row=7, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Exit", command= self.manager_exit).grid(column=6, row=7, sticky=(W, E))
         
-        for child in managerframe.winfo_children(): 
-            child.grid_configure(padx=5, pady=5)
+        manager_id.focus()
+        root.bind("<Return>", self.manager_login)
+        
+        for child in self.managerframe.winfo_children(): 
+            child.grid_configure(padx=10, pady=10)
   
-    def manager_login(self):
+    def manager_login(self):        #Attempts Login
         if login_manager(self.login_id.get(),self.login_password.get(),connect_sql) == True:
+            self.login_password.set("")
             print("login succeeded")
+            self.manager_control()
         else:
             print("login failed")
 
-    def manager_exit(self):
+    def manager_exit(self):     #Exits Manager Window
         self.branch.destroy()
+        self.id_entry.focus()
+        root.bind("<Return>", self.enter_time)
         
+    #====================================================Manager Control Screen==================================================
+        
+    def manager_control(self):
+        self.managerframe.destroy()
+        self.managerframe2 = ttk.Frame(self.branch, padding="3 3 12 12")
+        self.managerframe2.grid(column=0, row=0, sticky=(N, W, E, S))
+        
+        manager = query_manager(self.login_id.get(), connect_sql)
+        print(manager)
+        self.welcome_message = "Welcome " + manager[0][0]
+        ttk.Label(self.managerframe2, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        
+        ttk.Button(self.managerframe2, text= "Change punch", command= self.punch_control).grid(column=2, row=2, sticky=(W, E))
+        ttk.Button(self.managerframe2, text= "Manage Employees", command= self.manage_employee).grid(column=4, row=2, sticky=(W, E))
+        ttk.Button(self.managerframe2, text= "View Reports", command= self.view_reports).grid(column=2, row=4, sticky=(W, E))
+        ttk.Button(self.managerframe2, text= "Manage Managers", command= self.manage_manager).grid(column=4, row=4, sticky=(W, E))
+        ttk.Button(self.managerframe2, text= "Logout", command= self.logout).grid(column=5, row=5, sticky=(W, E))
+        
+        for child in self.managerframe2.winfo_children(): 
+            child.grid_configure(padx=10, pady=10)
+        
+    #=============================Punch Control Screen====================================================
+        
+    def punch_control(self):
+        self.managerframe2.destroy()
+        self.managerframe3 = ttk.Frame(self.branch, padding="3 3 12 12")
+        self.managerframe3.grid(column=0, row=0, sticky=(N, W, E, S))
+        
+        ttk.Label(self.managerframe3, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        
+    #==========================Manage Employee Screen=====================================================
+
+    def manage_employee(self):
+        return
+
+    #==========================View Reports Screen===============================================================
+
+    def view_reports(self):
+        return
+
+    #===========================Manage Managers Screen=====================================================
+
+    def manage_manager(self):
+        return
     
+    def logout(self):       #closes manager control window and resets id and password
+        self.login_id.set("")
+        self.login_password.set("")
+        self.branch.destroy()
+        self.id_entry.focus()
+        root.bind("<Return>", self.enter_time)
+        
+#========================Creates DB Tables======================================        
     
+sql_location = "payroll.sqlite" 
+connect_sql = create_connection(sql_location)
 
 create_employee_table = """
 CREATE TABLE IF NOT EXISTS employees (
@@ -136,6 +198,9 @@ CREATE TABLE IF NOT EXISTS employees (
   pay INTEGER
 );
 """
+
+print("Creating employee table")
+execute_query(connect_sql, create_employee_table)
 
 create_punch_table = """
 CREATE TABLE IF NOT EXISTS punches (
@@ -149,6 +214,9 @@ CREATE TABLE IF NOT EXISTS punches (
 );
 """
 
+print("Creating punch table")
+execute_query(connect_sql, create_punch_table)
+
 create_manager_table = """
 CREATE TABLE IF NOT EXISTS managers (
     id INTEGER PRIMARY KEY,
@@ -157,6 +225,11 @@ CREATE TABLE IF NOT EXISTS managers (
     password TEXT NOT NULL
 );
 """
+
+print("Creating manager table")
+execute_query(connect_sql, create_manager_table)
+
+#=======================Filling Test DB=============================================
 
 create_test_employees = """
 INSERT INTO
@@ -168,6 +241,10 @@ VALUES
   (321456, 'Bob', 'Builder', 12.30),
   (456123, 'Jack', 'Beanstalk', 9.00);
 """
+
+print("filling test employee table")
+execute_query(connect_sql, create_test_employees)
+
 create_test_manager = """
 INSERT INTO
     managers (id, fName, lName, password)
@@ -175,21 +252,10 @@ VALUES
     (1,'Dead','Pool','GunsAreG00d!');
 """
 
-
-
-sql_location = "payroll.sqlite" 
-connect_sql = create_connection(sql_location)
-print("Creating employee table")
-execute_query(connect_sql, create_employee_table)
-print("filling test employee table")
-execute_query(connect_sql, create_test_employees)
-print("Creating manager table")
-execute_query(connect_sql, create_manager_table)
-print("Creating punch table")
-execute_query(connect_sql, create_punch_table)
 print("Creating test Manager")
 execute_query(connect_sql, create_test_manager)
 
+#================================Starting Loop============================================================
 
 root = Tk()
 MainWindow(root)

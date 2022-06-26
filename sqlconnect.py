@@ -1,6 +1,8 @@
 from datetime import datetime
+from multiprocessing import Manager
 import sqlite3
 from sqlite3 import Error
+from xml.etree.ElementTree import tostring
 
  
 def create_connection(path):
@@ -72,3 +74,8 @@ def login_manager(login, password, connection):
             return False
     else:
         return False 
+    
+def query_manager(id, connection):
+    manager_get = ("SELECT fName, lName FROM managers WHERE id=" + id)
+    manager = execute_read_query(connection, manager_get)
+    return manager
