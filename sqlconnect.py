@@ -79,3 +79,18 @@ def query_manager(id, connection):
     manager_get = ("SELECT fName, lName FROM managers WHERE id=" + id)
     manager = execute_read_query(connection, manager_get)
     return manager
+
+def query_employees(connection):
+    employees_get = ("SELECT * FROM employees")
+    employees = execute_read_query(connection, employees_get)
+    return employees
+
+def query_punch(id,connection):
+    employee_get = ("SELECT * FROM punches WHERE employeeID=" + id)
+    employee = execute_read_query(connection, employee_get)
+    return employee
+
+def get_punch(id, connection):
+    punch_get = ("SELECT * FROM punches WHERE id=" +str(id))
+    punch = execute_read_query(connection, punch_get)
+    return punch

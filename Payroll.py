@@ -1,8 +1,10 @@
 from logging import root
+from operator import indexOf
 import threading
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
+from pyparsing import col
 from sqlconnect import *
 import time
 
@@ -92,7 +94,7 @@ class MainWindow:
     def login(self):
 
         self.branch= Toplevel(root)
-        self.branch.geometry("550x550")
+        self.branch.geometry("750x750")
         self.branch.title("Manager Control")
        
         self.managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
@@ -163,6 +165,110 @@ class MainWindow:
         
         ttk.Label(self.managerframe3, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
         
+        #ttk.Label(self.managerframe3, text = "Employee ID: ")
+        self.employee_id = StringVar()
+        employeebox = ttk.Combobox(self.managerframe3, textvariable= self.employee_id, state= "readonly")
+        employeebox.grid(column=2, row=2, sticky=(E,W))
+        employee_list = self.employee_list_gen()
+        employeebox["value"] = employee_list
+        #print(employee_list)
+        self.punch_list = []
+        employeebox.bind("<<ComboboxSelected>>", self.populate_employee)
+        
+        self.punch_id_list = []
+        self.punch_id = StringVar()
+        self.punchbox = ttk.Combobox(self.managerframe3, textvariable= self.punch_id, state= "readonly")
+        self.punchbox.grid(column=2,row=3,sticky=(W,E))
+        print(self.punch_list)
+        self.punchbox.bind("<<ComboboxSelected>>", self.populate_punch)
+        
+        ttk.Label(self.managerframe3, text = "Month: ").grid(column=1, row= 4, sticky=(E,W))
+        self.month_value = StringVar()
+        self.month_entry = ttk.Entry(self.managerframe3, textvariable=self.month_value)
+        self.month_entry.grid(column=2, row= 4, sticky=(E,W))
+        
+        ttk.Label(self.managerframe3, text = "Day: ").grid(column=3, row= 4, sticky=(E,W))
+        self.day_value = StringVar()
+        self.day_entry = ttk.Entry(self.managerframe3, textvariable=self.day_value)
+        self.day_entry.grid(column=4, row= 4, sticky=(E,W))
+        
+        ttk.Label(self.managerframe3, text = "Hour: ").grid(column=1, row= 5, sticky=(E,W))
+        self.hour_value = StringVar()
+        self.hour_entry = ttk.Entry(self.managerframe3, textvariable=self.hour_value)
+        self.hour_entry.grid(column=2, row= 5, sticky=(E,W))
+        
+        ttk.Label(self.managerframe3, text = "Minute: ").grid(column=3, row= 5, sticky=(E,W))
+        self.minute_value = StringVar()
+        self.minute_entry = ttk.Entry(self.managerframe3, textvariable=self.minute_value)
+        self.minute_entry.grid(column=4, row= 5, sticky=(E,W))
+        
+        ttk.Button(self.managerframe3, text="Delete", command=self.delete_punch).grid(column=1,row=6,sticky=(E,W))
+        ttk.Button(self.managerframe3, text="Add", command=self.add_punch).grid(column=2,row=6,sticky=(E,W))
+        ttk.Button(self.managerframe3, text="Update", command=self.update_punch).grid(column=3,row=6,sticky=(E,W))
+        
+        for child in self.managerframe3.winfo_children(): 
+            child.grid_configure(padx=10, pady=10)
+
+        
+    def employee_list_gen(self):
+        employee_list = []
+        for x in query_employees(connect_sql):
+            fullName = x[1] + " " + x[2] + " " + str(x[0])
+            employee_list.append(fullName)
+        employee_list.sort()
+        #print(employee_list)
+        return employee_list
+    
+    def populate_employee(self,event):
+        self.punch_list = []
+        self.punch_id_list = []
+        self.punchbox.set(self.punch_list)
+        employee_name = self.employee_id.get()
+        employee_name = employee_name.split()
+        #print(employee_name)
+        employee_id = employee_name[2]
+        #print(employee_id)
+        if employee_id != "":
+            employee = query_punch(employee_id, connect_sql)
+            print(employee)
+            for i in range(len(employee)):
+                #print(employee[i])
+                punch_time = "{}/{} - {}:{}"
+                punch_str = punch_time.format(employee[i][2], employee[i][3], employee[i][4], employee[i][5])
+                self.punch_id_list.append(employee[i][0])
+                self.punch_list.append(punch_str)
+            self.punchbox["value"] = self.punch_list
+            print(self.punch_list)
+        else:
+            print("No employee Selected")
+            
+            
+    def populate_punch(self, event):
+        print(self.punch_list)
+        print(self.punch_id.get())
+        self.punch_id_number = self.punch_id_list[indexOf(self.punch_list, self.punch_id.get())]
+        print(self.punch_id_number)
+        #ttk.Label(self.managerframe3,text = self.punch_id_number).grid(column=1,row=3,sticky=(W))
+        self.current_punch = get_punch(self.punch_id_number, connect_sql)
+        
+        self.month_value.set(self.current_punch[0][2])
+        self.day_value.set(self.current_punch[0][3])
+        self.hour_value.set(self.current_punch[0][4])
+        self.minute_value.set(self.current_punch[0][5])
+    
+    def delete_punch(self):
+        
+        return
+    
+    def update_punch(self):
+        
+        return
+    
+    def add_punch(self):
+        
+        return
+    
+    
     #==========================Manage Employee Screen=====================================================
 
     def manage_employee(self):
