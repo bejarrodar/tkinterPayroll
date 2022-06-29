@@ -138,36 +138,38 @@ class MainWindow:
     #====================================================Manager Control Screen==================================================
         
     def manager_control(self):
-        self.managerframe.destroy()
-        self.managerframe2 = ttk.Frame(self.branch, padding="3 3 12 12")
-        self.managerframe2.grid(column=0, row=0, sticky=(N, W, E, S))
+        for child in self.managerframe.winfo_children(): 
+            child.destroy()
+        self.managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
+        self.managerframe.grid(column=0, row=0, sticky=(N, W, E, S))
         
         manager = query_manager(self.login_id.get(), connect_sql)
         print(manager)
         self.welcome_message = "Welcome " + manager[0][0]
-        ttk.Label(self.managerframe2, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
         
-        ttk.Button(self.managerframe2, text= "Change punch", command= self.punch_control).grid(column=2, row=2, sticky=(W, E))
-        ttk.Button(self.managerframe2, text= "Manage Employees", command= self.manage_employee).grid(column=4, row=2, sticky=(W, E))
-        ttk.Button(self.managerframe2, text= "View Reports", command= self.view_reports).grid(column=2, row=4, sticky=(W, E))
-        ttk.Button(self.managerframe2, text= "Manage Managers", command= self.manage_manager).grid(column=4, row=4, sticky=(W, E))
-        ttk.Button(self.managerframe2, text= "Logout", command= self.logout).grid(column=5, row=5, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Change punch", command= self.punch_control).grid(column=2, row=2, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Manage Employees", command= self.manage_employee).grid(column=4, row=2, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "View Reports", command= self.view_reports).grid(column=2, row=4, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Manage Managers", command= self.manage_manager).grid(column=4, row=4, sticky=(W, E))
+        ttk.Button(self.managerframe, text= "Logout", command= self.logout).grid(column=5, row=5, sticky=(W, E))
         
-        for child in self.managerframe2.winfo_children(): 
+        for child in self.managerframe.winfo_children(): 
             child.grid_configure(padx=10, pady=10)
         
     #=============================Punch Control Screen====================================================
         
     def punch_control(self):
-        self.managerframe2.destroy()
-        self.managerframe3 = ttk.Frame(self.branch, padding="3 3 12 12")
-        self.managerframe3.grid(column=0, row=0, sticky=(N, W, E, S))
+        for child in self.managerframe.winfo_children(): 
+            child.destroy()
+        self.managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
+        self.managerframe.grid(column=0, row=0, sticky=(N, W, E, S))
         
-        ttk.Label(self.managerframe3, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
         
         #ttk.Label(self.managerframe3, text = "Employee ID: ")
         self.employee_id = StringVar()
-        employeebox = ttk.Combobox(self.managerframe3, textvariable= self.employee_id, state= "readonly")
+        employeebox = ttk.Combobox(self.managerframe, textvariable= self.employee_id, state= "readonly")
         employeebox.grid(column=2, row=2, sticky=(E,W))
         employee_list = self.employee_list_gen()
         employeebox["value"] = employee_list
@@ -177,36 +179,36 @@ class MainWindow:
         
         self.punch_id_list = []
         self.punch_id = StringVar()
-        self.punchbox = ttk.Combobox(self.managerframe3, textvariable= self.punch_id, state= "readonly")
+        self.punchbox = ttk.Combobox(self.managerframe, textvariable= self.punch_id, state= "readonly")
         self.punchbox.grid(column=2,row=3,sticky=(W,E))
         print(self.punch_list)
         self.punchbox.bind("<<ComboboxSelected>>", self.populate_punch)
         
-        ttk.Label(self.managerframe3, text = "Month: ").grid(column=1, row= 4, sticky=(E,W))
+        ttk.Label(self.managerframe, text = "Month: ").grid(column=1, row= 4, sticky=(E,W))
         self.month_value = StringVar()
-        self.month_entry = ttk.Entry(self.managerframe3, textvariable=self.month_value)
+        self.month_entry = ttk.Entry(self.managerframe, textvariable=self.month_value)
         self.month_entry.grid(column=2, row= 4, sticky=(E,W))
         
-        ttk.Label(self.managerframe3, text = "Day: ").grid(column=3, row= 4, sticky=(E,W))
+        ttk.Label(self.managerframe, text = "Day: ").grid(column=3, row= 4, sticky=(E,W))
         self.day_value = StringVar()
-        self.day_entry = ttk.Entry(self.managerframe3, textvariable=self.day_value)
+        self.day_entry = ttk.Entry(self.managerframe, textvariable=self.day_value)
         self.day_entry.grid(column=4, row= 4, sticky=(E,W))
         
-        ttk.Label(self.managerframe3, text = "Hour: ").grid(column=1, row= 5, sticky=(E,W))
+        ttk.Label(self.managerframe, text = "Hour: ").grid(column=1, row= 5, sticky=(E,W))
         self.hour_value = StringVar()
-        self.hour_entry = ttk.Entry(self.managerframe3, textvariable=self.hour_value)
+        self.hour_entry = ttk.Entry(self.managerframe, textvariable=self.hour_value)
         self.hour_entry.grid(column=2, row= 5, sticky=(E,W))
         
-        ttk.Label(self.managerframe3, text = "Minute: ").grid(column=3, row= 5, sticky=(E,W))
+        ttk.Label(self.managerframe, text = "Minute: ").grid(column=3, row= 5, sticky=(E,W))
         self.minute_value = StringVar()
-        self.minute_entry = ttk.Entry(self.managerframe3, textvariable=self.minute_value)
+        self.minute_entry = ttk.Entry(self.managerframe, textvariable=self.minute_value)
         self.minute_entry.grid(column=4, row= 5, sticky=(E,W))
         
-        ttk.Button(self.managerframe3, text="Delete", command=self.delete_punch).grid(column=1,row=6,sticky=(E,W))
-        ttk.Button(self.managerframe3, text="Add", command=self.add_punch).grid(column=2,row=6,sticky=(E,W))
-        ttk.Button(self.managerframe3, text="Update", command=self.update_punch).grid(column=3,row=6,sticky=(E,W))
+        ttk.Button(self.managerframe, text="Delete", command=self.delete_punch).grid(column=1,row=6,sticky=(E,W))
+        ttk.Button(self.managerframe, text="Add", command=self.add_punch).grid(column=2,row=6,sticky=(E,W))
+        ttk.Button(self.managerframe, text="Update", command=self.update_punch).grid(column=3,row=6,sticky=(E,W))
         
-        for child in self.managerframe3.winfo_children(): 
+        for child in self.managerframe.winfo_children(): 
             child.grid_configure(padx=10, pady=10)
 
         
@@ -226,15 +228,19 @@ class MainWindow:
         employee_name = self.employee_id.get()
         employee_name = employee_name.split()
         #print(employee_name)
-        employee_id = employee_name[2]
+        self.employee_id_number = employee_name[2]
         #print(employee_id)
-        if employee_id != "":
-            employee = query_punch(employee_id, connect_sql)
+        if self.employee_id_number != "":
+            employee = query_punch(self.employee_id_number, connect_sql)
             print(employee)
             for i in range(len(employee)):
                 #print(employee[i])
                 punch_time = "{}/{} - {}:{}"
-                punch_str = punch_time.format(employee[i][2], employee[i][3], employee[i][4], employee[i][5])
+                if employee[i][5] < 10:
+                    minute = "0" + str(employee[i][5])
+                else:
+                    minute = employee[i][5]
+                punch_str = punch_time.format(employee[i][2], employee[i][3], employee[i][4], minute)
                 self.punch_id_list.append(employee[i][0])
                 self.punch_list.append(punch_str)
             self.punchbox["value"] = self.punch_list
@@ -257,32 +263,55 @@ class MainWindow:
         self.minute_value.set(self.current_punch[0][5])
     
     def delete_punch(self):
-        
-        return
+        del_punch_db(self.punch_id_number, connect_sql)
     
     def update_punch(self):
-        
-        return
+        update = []
+        update.append(self.punch_id_number)
+        update.append(self.month_value.get())
+        update.append(self.day_value.get())
+        update.append(self.hour_value.get())
+        update.append(self.minute_value.get())
+        update_punch_db(update, connect_sql)
     
     def add_punch(self):
-        
-        return
+        update = []
+        update.append(self.employee_id_number)
+        update.append(self.month_value.get())
+        update.append(self.day_value.get())
+        update.append(self.hour_value.get())
+        update.append(self.minute_value.get())
+        punch_add(update, connect_sql)
     
     
     #==========================Manage Employee Screen=====================================================
 
     def manage_employee(self):
-        return
+        for child in self.managerframe.winfo_children(): 
+            child.destroy()
+        ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        
+        self.employee_id = StringVar()
+        employeebox = ttk.Combobox(self.managerframe, textvariable= self.employee_id, state= "readonly")
+        employeebox.grid(column=2, row=2, sticky=(E,W))
+        employee_list = self.employee_list_gen()
+        employeebox["value"] = employee_list
+        
+        
 
     #==========================View Reports Screen===============================================================
 
     def view_reports(self):
-        return
+        for child in self.managerframe.winfo_children(): 
+            child.destroy()
+        ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
 
     #===========================Manage Managers Screen=====================================================
 
     def manage_manager(self):
-        return
+        for child in self.managerframe.winfo_children(): 
+            child.destroy()
+        ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
     
     def logout(self):       #closes manager control window and resets id and password
         self.login_id.set("")

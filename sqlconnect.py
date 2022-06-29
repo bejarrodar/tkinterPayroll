@@ -94,3 +94,34 @@ def get_punch(id, connection):
     punch_get = ("SELECT * FROM punches WHERE id=" +str(id))
     punch = execute_read_query(connection, punch_get)
     return punch
+
+def del_punch_db(id, connection):
+    punch_del = ("DELETE FROM punches WHERE id=" + str(id))
+    execute_query(connection, punch_del)
+    
+def update_punch_db(update, connection): #update is (id, punchMonth, punchDay, punchHour, punchMinute)
+    punch_update = """
+                    UPDATE
+                        punches
+                    SET
+                        punchMonth = {1},
+                        punchDay = {2},
+                        punchHour = {3},
+                        punchMinute = {4}
+                    WHERE
+                        id = {0}
+                    """
+    punch_update_str = punch_update.format(update[0], update[1], update[2], update[3], update[4])
+    print(punch_update_str)
+    execute_query(connection, punch_update_str)
+    
+def punch_add(list, connection): #list is (employeeID, punchMonth, punchDay, punchHour, punchMinute)
+    punch = """
+            INSERT INTO 
+                punches (employeeID, punchMonth, punchDay, punchHour, punchMinute)
+            VALUES
+                ({0}, {1}, {2}, {3}, {4});
+            """
+    punch_added = punch.format(list[0], list[1], list[2], list[3], list[4])
+    print(punch_added)
+    execute_query(connection, punch_added)
