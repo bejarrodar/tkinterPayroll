@@ -1,8 +1,6 @@
 from datetime import datetime
-from multiprocessing import Manager
 import sqlite3
 from sqlite3 import Error
-from xml.etree.ElementTree import tostring
 
  
 def create_connection(path):
@@ -125,3 +123,43 @@ def punch_add(list, connection): #list is (employeeID, punchMonth, punchDay, pun
     punch_added = punch.format(list[0], list[1], list[2], list[3], list[4])
     print(punch_added)
     execute_query(connection, punch_added)
+    
+def get_employee(id, connection):
+    query = ("SELECT * FROM employees WHERE id=" +str(id))
+    output = execute_read_query(connection, query)
+    out_id = output[0][0]
+    out_fname = output[0][1]
+    out_lname = output[0][2]
+    out_pay = output[0][3]
+    employee = {"id":out_id, "fname":out_fname, "lname": out_lname, "pay":out_pay}
+    return employee
+
+def del_employee_db(id, connection):
+    employee_del = ("DELETE FROM employees WHERE id=" + str(id))
+    execute_query(connection, employee_del)
+    
+def employee_add(connection, employee):
+    change = """
+            INSERT INTO 
+                employees (id, fname, lname, pay)
+            VALUES
+                ({0}, '{1}', '{2}', {3});
+            """
+    changed = change.format(employee["id"], employee["fname"], employee["lname"], employee["pay"])
+    print(changed)
+    execute_query(connection, changed)
+    
+def update_employees_db(employee, connection): 
+    employee_update = """
+                    UPDATE
+                        employees
+                    SET
+                        fName = '{1}',
+                        lName = '{2}',
+                        pay = {3}
+                    WHERE
+                        id = {0}
+                    """
+    employee_update_str = employee_update.format(employee["id"], employee["fname"], employee["lname"], employee["pay"])
+    print(employee_update_str)
+    execute_query(connection, employee_update_str)

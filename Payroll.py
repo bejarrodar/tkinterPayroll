@@ -1,12 +1,15 @@
+#====================================================================Imports===========================================================
 from logging import root
-from operator import indexOf
 import threading
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
-from pyparsing import col
 from sqlconnect import *
 import time
+from manageEmployees import *
+from punchControl import *
+from manageManagers import *
+from viewReports import *
 
 class MainWindow:
     def __init__(self, root):
@@ -39,7 +42,7 @@ class MainWindow:
             child.grid_configure(padx=5, pady=5)
             
         self.id_entry.focus()
-        root.bind("<Return>", self.enter_time)
+        self.id_entry.bind("<Return>", self.enter_time)
             
     def update_labels(self):            #updates time on punch screen
         current_time = (datetime.now().strftime("%H:%M:%S"))
@@ -117,12 +120,12 @@ class MainWindow:
         ttk.Button(self.managerframe, text= "Exit", command= self.manager_exit).grid(column=6, row=7, sticky=(W, E))
         
         manager_id.focus()
-        root.bind("<Return>", self.manager_login)
+        manager_password.bind("<Return>", self.manager_login)
         
         for child in self.managerframe.winfo_children(): 
             child.grid_configure(padx=10, pady=10)
   
-    def manager_login(self):        #Attempts Login
+    def manager_login(self,event = None):        #Attempts Login
         if login_manager(self.login_id.get(),self.login_password.get(),connect_sql) == True:
             self.login_password.set("")
             print("login succeeded")
@@ -162,127 +165,8 @@ class MainWindow:
     def punch_control(self):
         for child in self.managerframe.winfo_children(): 
             child.destroy()
-        self.managerframe = ttk.Frame(self.branch, padding="3 3 12 12")
-        self.managerframe.grid(column=0, row=0, sticky=(N, W, E, S))
-        
         ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
-        
-        #ttk.Label(self.managerframe3, text = "Employee ID: ")
-        self.employee_id = StringVar()
-        employeebox = ttk.Combobox(self.managerframe, textvariable= self.employee_id, state= "readonly")
-        employeebox.grid(column=2, row=2, sticky=(E,W))
-        employee_list = self.employee_list_gen()
-        employeebox["value"] = employee_list
-        #print(employee_list)
-        self.punch_list = []
-        employeebox.bind("<<ComboboxSelected>>", self.populate_employee)
-        
-        self.punch_id_list = []
-        self.punch_id = StringVar()
-        self.punchbox = ttk.Combobox(self.managerframe, textvariable= self.punch_id, state= "readonly")
-        self.punchbox.grid(column=2,row=3,sticky=(W,E))
-        print(self.punch_list)
-        self.punchbox.bind("<<ComboboxSelected>>", self.populate_punch)
-        
-        ttk.Label(self.managerframe, text = "Month: ").grid(column=1, row= 4, sticky=(E,W))
-        self.month_value = StringVar()
-        self.month_entry = ttk.Entry(self.managerframe, textvariable=self.month_value)
-        self.month_entry.grid(column=2, row= 4, sticky=(E,W))
-        
-        ttk.Label(self.managerframe, text = "Day: ").grid(column=3, row= 4, sticky=(E,W))
-        self.day_value = StringVar()
-        self.day_entry = ttk.Entry(self.managerframe, textvariable=self.day_value)
-        self.day_entry.grid(column=4, row= 4, sticky=(E,W))
-        
-        ttk.Label(self.managerframe, text = "Hour: ").grid(column=1, row= 5, sticky=(E,W))
-        self.hour_value = StringVar()
-        self.hour_entry = ttk.Entry(self.managerframe, textvariable=self.hour_value)
-        self.hour_entry.grid(column=2, row= 5, sticky=(E,W))
-        
-        ttk.Label(self.managerframe, text = "Minute: ").grid(column=3, row= 5, sticky=(E,W))
-        self.minute_value = StringVar()
-        self.minute_entry = ttk.Entry(self.managerframe, textvariable=self.minute_value)
-        self.minute_entry.grid(column=4, row= 5, sticky=(E,W))
-        
-        ttk.Button(self.managerframe, text="Delete", command=self.delete_punch).grid(column=1,row=6,sticky=(E,W))
-        ttk.Button(self.managerframe, text="Add", command=self.add_punch).grid(column=2,row=6,sticky=(E,W))
-        ttk.Button(self.managerframe, text="Update", command=self.update_punch).grid(column=3,row=6,sticky=(E,W))
-        
-        for child in self.managerframe.winfo_children(): 
-            child.grid_configure(padx=10, pady=10)
-
-        
-    def employee_list_gen(self):
-        employee_list = []
-        for x in query_employees(connect_sql):
-            fullName = x[1] + " " + x[2] + " " + str(x[0])
-            employee_list.append(fullName)
-        employee_list.sort()
-        #print(employee_list)
-        return employee_list
-    
-    def populate_employee(self,event):
-        self.punch_list = []
-        self.punch_id_list = []
-        self.punchbox.set(self.punch_list)
-        employee_name = self.employee_id.get()
-        employee_name = employee_name.split()
-        #print(employee_name)
-        self.employee_id_number = employee_name[2]
-        #print(employee_id)
-        if self.employee_id_number != "":
-            employee = query_punch(self.employee_id_number, connect_sql)
-            print(employee)
-            for i in range(len(employee)):
-                #print(employee[i])
-                punch_time = "{}/{} - {}:{}"
-                if employee[i][5] < 10:
-                    minute = "0" + str(employee[i][5])
-                else:
-                    minute = employee[i][5]
-                punch_str = punch_time.format(employee[i][2], employee[i][3], employee[i][4], minute)
-                self.punch_id_list.append(employee[i][0])
-                self.punch_list.append(punch_str)
-            self.punchbox["value"] = self.punch_list
-            print(self.punch_list)
-        else:
-            print("No employee Selected")
-            
-            
-    def populate_punch(self, event):
-        print(self.punch_list)
-        print(self.punch_id.get())
-        self.punch_id_number = self.punch_id_list[indexOf(self.punch_list, self.punch_id.get())]
-        print(self.punch_id_number)
-        #ttk.Label(self.managerframe3,text = self.punch_id_number).grid(column=1,row=3,sticky=(W))
-        self.current_punch = get_punch(self.punch_id_number, connect_sql)
-        
-        self.month_value.set(self.current_punch[0][2])
-        self.day_value.set(self.current_punch[0][3])
-        self.hour_value.set(self.current_punch[0][4])
-        self.minute_value.set(self.current_punch[0][5])
-    
-    def delete_punch(self):
-        del_punch_db(self.punch_id_number, connect_sql)
-    
-    def update_punch(self):
-        update = []
-        update.append(self.punch_id_number)
-        update.append(self.month_value.get())
-        update.append(self.day_value.get())
-        update.append(self.hour_value.get())
-        update.append(self.minute_value.get())
-        update_punch_db(update, connect_sql)
-    
-    def add_punch(self):
-        update = []
-        update.append(self.employee_id_number)
-        update.append(self.month_value.get())
-        update.append(self.day_value.get())
-        update.append(self.hour_value.get())
-        update.append(self.minute_value.get())
-        punch_add(update, connect_sql)
-    
+        punch_control(self.managerframe,connect_sql)
     
     #==========================Manage Employee Screen=====================================================
 
@@ -290,14 +174,7 @@ class MainWindow:
         for child in self.managerframe.winfo_children(): 
             child.destroy()
         ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
-        
-        self.employee_id = StringVar()
-        employeebox = ttk.Combobox(self.managerframe, textvariable= self.employee_id, state= "readonly")
-        employeebox.grid(column=2, row=2, sticky=(E,W))
-        employee_list = self.employee_list_gen()
-        employeebox["value"] = employee_list
-        
-        
+        show_manage_employee(self.managerframe, connect_sql)
 
     #==========================View Reports Screen===============================================================
 
@@ -305,6 +182,8 @@ class MainWindow:
         for child in self.managerframe.winfo_children(): 
             child.destroy()
         ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        
+        show_reports(self.managerframe,connect_sql)
 
     #===========================Manage Managers Screen=====================================================
 
@@ -312,19 +191,18 @@ class MainWindow:
         for child in self.managerframe.winfo_children(): 
             child.destroy()
         ttk.Label(self.managerframe, text=self.welcome_message).grid(column=1,row=1,sticky=(W))
+        
+        manager_control()
+        
     
     def logout(self):       #closes manager control window and resets id and password
         self.login_id.set("")
         self.login_password.set("")
         self.branch.destroy()
         self.id_entry.focus()
-        root.bind("<Return>", self.enter_time)
         
 #========================Creates DB Tables======================================        
     
-sql_location = "payroll.sqlite" 
-connect_sql = create_connection(sql_location)
-
 create_employee_table = """
 CREATE TABLE IF NOT EXISTS employees (
   id INTEGER PRIMARY KEY,
@@ -333,9 +211,6 @@ CREATE TABLE IF NOT EXISTS employees (
   pay INTEGER
 );
 """
-
-print("Creating employee table")
-execute_query(connect_sql, create_employee_table)
 
 create_punch_table = """
 CREATE TABLE IF NOT EXISTS punches (
@@ -349,9 +224,6 @@ CREATE TABLE IF NOT EXISTS punches (
 );
 """
 
-print("Creating punch table")
-execute_query(connect_sql, create_punch_table)
-
 create_manager_table = """
 CREATE TABLE IF NOT EXISTS managers (
     id INTEGER PRIMARY KEY,
@@ -360,9 +232,6 @@ CREATE TABLE IF NOT EXISTS managers (
     password TEXT NOT NULL
 );
 """
-
-print("Creating manager table")
-execute_query(connect_sql, create_manager_table)
 
 #=======================Filling Test DB=============================================
 
@@ -377,9 +246,6 @@ VALUES
   (456123, 'Jack', 'Beanstalk', 9.00);
 """
 
-print("filling test employee table")
-execute_query(connect_sql, create_test_employees)
-
 create_test_manager = """
 INSERT INTO
     managers (id, fName, lName, password)
@@ -387,10 +253,15 @@ VALUES
     (1,'Dead','Pool','GunsAreG00d!');
 """
 
-print("Creating test Manager")
-execute_query(connect_sql, create_test_manager)
-
 #================================Starting Loop============================================================
+
+sql_location = "payroll.sqlite" 
+connect_sql = create_connection(sql_location)
+execute_query(connect_sql, create_employee_table)
+execute_query(connect_sql, create_test_manager)
+execute_query(connect_sql, create_test_employees)
+execute_query(connect_sql, create_manager_table)
+execute_query(connect_sql, create_punch_table)
 
 root = Tk()
 MainWindow(root)
