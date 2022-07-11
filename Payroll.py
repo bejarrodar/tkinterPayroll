@@ -10,6 +10,7 @@ from manageEmployees import *
 from punchControl import *
 from manageManagers import *
 from viewReports import *
+import hashlib
 
 class MainWindow:
     def __init__(self, root):
@@ -125,8 +126,11 @@ class MainWindow:
         for child in self.managerframe.winfo_children(): 
             child.grid_configure(padx=10, pady=10)
   
-    def manager_login(self,event = None):        #Attempts Login
-        if login_manager(self.login_id.get(),self.login_password.get(),connect_sql) == True:
+    def manager_login(self,event = None):       #Attempts Login
+        p = self.login_password.get()
+        password = hashlib.sha256()
+        password.update(p.encode())
+        if login_manager(self.login_id.get(),password.hexdigest(),connect_sql) == True:
             self.login_password.set("")
             print("login succeeded")
             self.manager_control()
@@ -250,15 +254,20 @@ create_test_manager = """
 INSERT INTO
     managers (id, fName, lName, password)
 VALUES
-    (1,'Dead','Pool','GunsAreG00d!');
+    (1,'Dead','Pool','{}');
 """
+test_password = "GunsAreG00d!"
+test_hash = hashlib.sha256()
+test_hash.update(test_password.encode())
+test_manager = create_test_manager.format(test_hash.hexdigest())
+print(test_manager)
 
 #================================Starting Loop============================================================
 
 sql_location = "payroll.sqlite" 
 connect_sql = create_connection(sql_location)
 execute_query(connect_sql, create_employee_table)
-execute_query(connect_sql, create_test_manager)
+execute_query(connect_sql, test_manager)
 execute_query(connect_sql, create_test_employees)
 execute_query(connect_sql, create_manager_table)
 execute_query(connect_sql, create_punch_table)
